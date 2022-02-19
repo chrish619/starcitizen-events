@@ -1,8 +1,15 @@
 public struct CalendarEvent
 {
-    public string EventName { get; set; } = string.Empty;
+    public string EventName { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime EndTime { get; set; }
+
+    public CalendarEvent()
+    {
+        EventName = string.Empty;
+        StartTime = DateTime.MinValue;
+        EndTime = DateTime.MinValue;
+    }
 
     public override bool Equals(object? obj)
     {
