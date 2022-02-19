@@ -27,6 +27,7 @@ internal class GoogleDocSourceFetcher : IHostedService
         _logger = logger;
         _eventStore = eventStore;
     }
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting up..");
@@ -64,8 +65,14 @@ internal class GoogleDocSourceFetcher : IHostedService
 
     private async Task LoadDataAsync()
     {
+#if DEBUG
         var credential = GoogleCredential.FromFile("credentials.json")
             .CreateScoped(Scopes);
+#else
+        // In production, this should be read from a secret/configuration value
+        var credential = GoogleCredential.FromJson(_options.Value.Credentials)
+            .CreateScoped(Scopes);
+#endif
 
         var service = new SheetsService(new BaseClientService.Initializer()
         {
@@ -118,7 +125,6 @@ internal class GoogleDocSourceFetcher : IHostedService
         {
             _logger.LogError(ex, "Failed to get values");
         }
-
     }
 
     private DateTime ParseDate(string? value)
@@ -156,6 +162,6 @@ public class GoogleDocSourceFetcherOptions
     public string Sheet { get; set; }
     public string DateRange { get; set; }
     public string NameRange { get; set; }
-
     public string[] DateFormats { get; set; }
+    public string Credentials { get; set; }
 }
