@@ -51,16 +51,16 @@ export class EventsCalendar extends Component {
             <th>Name</th>
             <th>Starts</th>
             <th>Ends</th>
-            <th>Duration</th>
+            <th>Duration/Ends</th>
           </tr>
         </thead>
         <tbody>
           {events.map(event =>
-            <tr key={event.id} className={event.startTime.isBefore(moment())?'table-success':'' }>
+            <tr key={event.id} className={event.startTime.isBefore(moment()) ? 'table-success' : ''}>
               <td>{event.eventName}</td>
               <td>{showAsUtc ? event.startTime.utc().format('LLLL') : event.startTime.local().format('LLLL')}</td>
               <td>{showAsUtc ? event.endTime.utc().format('LLLL') : event.endTime.local().format('LLLL')}</td>
-              <td>{moment.duration(event.endTime.diff(event.startTime)).locale('en').humanize()}</td>
+              {event.startTime.isBefore(moment()) ? (<td>{event.endTime.fromNow()}</td>) : (<td>{event.duration.locale('en').humanize()}</td>)}
             </tr>
           )}
         </tbody>
@@ -97,7 +97,8 @@ export class EventsCalendar extends Component {
             id: d.eventName + d.startTime,
             eventName: d.eventName,
             startTime: moment(d.startTime),
-            endTime: moment(d.endTime)
+            endTime: moment(d.endTime),
+            duration: moment.duration(moment(d.endTime).diff(d.startTime)),
           };
         }),
         loading: false
