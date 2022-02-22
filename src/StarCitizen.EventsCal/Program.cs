@@ -1,3 +1,4 @@
+using StarCitizen.EventsCal.Hubs;
 using StarCitizen.EventsCal.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +7,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddControllersWithViews();
+
+builder.Services
+    .AddSignalR();
 
 builder.Services
     .AddSingleton<EventCalendarStoreBacking>()
@@ -26,6 +30,10 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapHub<EventsHub>("/events-hub");
+});
 
 app.MapControllerRoute(
     name: "default",

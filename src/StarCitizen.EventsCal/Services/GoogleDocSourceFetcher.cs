@@ -119,7 +119,14 @@ internal class GoogleDocSourceFetcher : IHostedService
                     });
                 }
 
-                changeSet.Commit();
+                if (changeSet.Commit())
+                {
+                    using var scope = _serviceProvider.CreateScope();
+
+                    var hub = scope.ServiceProvider.GetRequiredService<IHubContext<EventsHub, IEventsHub>>();
+
+                    await hub.Clients.All.PushAll(_eventStore.CurrentAndUpcomingEvents());
+                }
             }
         }
         catch (Exception ex)

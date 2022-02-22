@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import moment from 'moment';
 import 'moment-timezone';
 
+import EventsData from '../services/EventsData';
+
 export class EventsCalendar extends Component {
   static displayName = EventsCalendar.name;
 
@@ -14,18 +16,16 @@ export class EventsCalendar extends Component {
 
     this.state = { events: [], loading: true, showAsUtc: false, offsetFormatted: offFormat, offset: offset };
     this.toggleUtc = this.toggleUtc.bind(this);
+    this.eventsData = new EventsData();
+    this.unsubscribe = () => { };
   }
 
   componentDidMount() {
     this.populateEventsData();
-    this.timerId = setInterval(
-      () => this.populateEventsData(),
-      60 * 1000
-    );
   }
 
   componentWillUnmount() {
-    clearInterval(this.timerId);
+    this.unsubscribe();
   }
 
   toggleUtc() {
@@ -88,21 +88,13 @@ export class EventsCalendar extends Component {
   }
 
   async populateEventsData() {
-    const response = await fetch('events');
-    const data = await response.json();
-    this.setState((prev) => {
-      return {
-        events: data.map(d => {
-          return {
-            id: d.eventName + d.startTime,
-            eventName: d.eventName,
-            startTime: moment(d.startTime),
-            endTime: moment(d.endTime),
-            duration: moment.duration(moment(d.endTime).diff(d.startTime)),
-          };
-        }),
-        loading: false
-      };
+    this.unsubscribe = this.eventsData.subscribe(events => {
+      this.setState((prev) => {
+        return {
+          events: events,
+          loading: false
+        };
+      });
     });
   }
 }
