@@ -1,3 +1,6 @@
+
+namespace StarCitizen.EventsCal.Services;
+
 public class EventCalendarStoreBacking
 {
     private SortedSet<CalendarEvent> _events;
@@ -29,7 +32,7 @@ public class EventCalendarStoreBacking
 
     internal IEnumerable<CalendarEvent> CurrentAndUpcomingEvents()
     {
-         var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
 
         return _events
             .AsEnumerable()
@@ -53,11 +56,20 @@ public class EventCalendarStoreBacking
             _mergeSet.Add(calendarEvent);
         }
 
-        public void Commit()
+        /// <summary>
+        /// Commits changes to the underlying backing store; Adds items not in storage, removes items no longer in the store;
+        /// </summary>
+        /// <returns><see langword="true"/> if there were changes made to the underlying store</returns>
+        public bool Commit()
         {
+            bool hasChanges = false;
+
             foreach (var evt in _mergeSet)
             {
-                _backingStore._events.Add(evt);
+                if (_backingStore._events.Add(evt))
+                {
+                    hasChanges = true;
+                }
             }
 
             foreach (var evt in _backingStore._events.ToArray())
@@ -65,8 +77,11 @@ public class EventCalendarStoreBacking
                 if (!_mergeSet.Contains(evt))
                 {
                     _backingStore._events.Remove(evt);
+                    hasChanges = true;
                 }
             }
+
+            return hasChanges;
         }
 
         protected virtual void Dispose(bool disposing)

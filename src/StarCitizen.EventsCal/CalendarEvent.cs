@@ -1,3 +1,5 @@
+namespace StarCitizen.EventsCal;
+
 public struct CalendarEvent
 {
     public string EventName { get; set; }

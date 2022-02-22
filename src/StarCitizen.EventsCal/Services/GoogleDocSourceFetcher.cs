@@ -1,41 +1,48 @@
 using System.Globalization;
 
 using Google.Apis.Auth.OAuth2;
-using Google.Apis.Docs.v1;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
-using Google.Apis.Util.Store;
 
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Options;
 
+using StarCitizen.EventsCal.Hubs;
+
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource;
+
+namespace StarCitizen.EventsCal.Services;
 
 internal class GoogleDocSourceFetcher : IHostedService
 {
     static readonly string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
     static readonly string ApplicationName = "Google Docs API .NET Quickstart";
-
+    private readonly IServiceProvider _serviceProvider;
     private readonly IOptions<GoogleDocSourceFetcherOptions> _options;
     private readonly ILogger<GoogleDocSourceFetcher> _logger;
     private readonly EventCalendarStoreBacking _eventStore;
     private CancellationTokenSource _ctsStop;
 
-    public GoogleDocSourceFetcher(IOptions<GoogleDocSourceFetcherOptions> options, ILogger<GoogleDocSourceFetcher> logger, EventCalendarStoreBacking eventStore)
+    public GoogleDocSourceFetcher(IServiceProvider serviceProvider,
+                                  IOptions<GoogleDocSourceFetcherOptions> options,
+                                  ILogger<GoogleDocSourceFetcher> logger,
+                                  EventCalendarStoreBacking eventStore)
     {
+        _serviceProvider = serviceProvider;
         _options = options;
         _logger = logger;
         _eventStore = eventStore;
+        _ctsStop = new CancellationTokenSource();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting up..");
 
-        _ctsStop = new CancellationTokenSource();
-
         _ = LoadDataPeriodicallyAsync(_ctsStop.Token);
         _ = LoadDataAsync();
+
+        return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
@@ -79,12 +86,6 @@ internal class GoogleDocSourceFetcher : IHostedService
             HttpClientInitializer = credential,
             ApplicationName = ApplicationName,
         });
-
-        // var request = service.Spreadsheets.Get(_options.Value.DocumentId);
-
-        // var doc = await request.ExecuteAsync();
-
-        // _logger.LogInformation("Got document! {sheetUrl}", doc.SpreadsheetUrl);
 
         string nameRange = $"{_options.Value.Sheet}!{_options.Value.NameRange}";
         string dateRange = $"{_options.Value.Sheet}!{_options.Value.DateRange}";
@@ -158,10 +159,11 @@ internal class GoogleDocSourceFetcher : IHostedService
 
 public class GoogleDocSourceFetcherOptions
 {
-    public string DocumentId { get; set; }
-    public string Sheet { get; set; }
-    public string DateRange { get; set; }
-    public string NameRange { get; set; }
-    public string[] DateFormats { get; set; }
-    public string Credentials { get; set; }
+    public string DocumentId { get; set; } = string.Empty;
+    public string Sheet { get; set; } = string.Empty;
+    public string DateRange { get; set; } = string.Empty;
+    public string NameRange { get; set; } = string.Empty;
+    public string[] DateFormats { get; set; } = Array.Empty<string>();
+    public string Credentials { get; set; } = string.Empty;
+
 }

@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using StarCitizen.EventsCal.Services;
+
 namespace StarCitizen.EventsCal.Controllers;
 
 [ApiController]
