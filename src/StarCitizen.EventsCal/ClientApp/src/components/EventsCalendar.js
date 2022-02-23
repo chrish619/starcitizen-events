@@ -2,6 +2,9 @@ import React, { Component } from 'react';
 import moment from 'moment';
 import 'moment-timezone';
 
+import { EventsCalendarRowEvent } from './EventsCalendarRowEvent';
+import { EventsCalendarLocalUtcToggle } from './EventsCalendarLocalUtcToggle';
+
 import EventsData from '../services/EventsData';
 
 export class EventsCalendar extends Component {
@@ -37,9 +40,7 @@ export class EventsCalendar extends Component {
 
   renderTimeZoneToggle(showAsUtc) {
     return (<p>
-      <button onClick={this.toggleUtc} className={showAsUtc ? 'btn btn-primary active' : 'btn btn-primary'}>
-        Showing Times as {showAsUtc ? 'UTC' : moment.tz.guess()}
-      </button>
+      <EventsCalendarLocalUtcToggle utcEnabled={showAsUtc} toggle={this.toggleUtc} />
     </p>);
   }
 
@@ -56,12 +57,11 @@ export class EventsCalendar extends Component {
         </thead>
         <tbody>
           {events.map(event =>
-            <tr key={event.id} className={event.startTime.isBefore(moment()) ? 'table-success' : ''}>
-              <td>{event.eventName}</td>
-              <td>{showAsUtc ? event.startTime.utc().format('LLLL') : event.startTime.local().format('LLLL')}</td>
-              <td>{showAsUtc ? event.endTime.utc().format('LLLL') : event.endTime.local().format('LLLL')}</td>
-              {event.startTime.isBefore(moment()) ? (<td>{event.endTime.fromNow()}</td>) : (<td>{event.duration.locale('en').humanize()}</td>)}
-            </tr>
+            <EventsCalendarRowEvent key={event.id}
+              eventName={event.eventName}
+              startTime={event.startTime}
+              endTime={event.endTime}
+              showAsUtc={showAsUtc} />
           )}
         </tbody>
       </table>
